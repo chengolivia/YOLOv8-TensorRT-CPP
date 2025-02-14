@@ -149,24 +149,25 @@ std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageBGR) {
 std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>> &featureVectors) {
     const auto &outputDims = m_trtEngine->getOutputDims();
 
-    int numChannels = outputDims[0].d[1];
-    int numAnchors = outputDims[0].d[2];
+    int numChannels = outputDims[1].d[1];
+    int numAnchors = outputDims[1].d[2];
 
     const auto numClasses = numChannels - SEG_CHANNELS - 4;
 
     // Ensure the output lengths are correct
-    if (featureVectors[0].size() != static_cast<size_t>(numChannels) * numAnchors) {
-        throw std::logic_error("Output at index 0 has incorrect length");
-    }
-
-    if (featureVectors[1].size() != static_cast<size_t>(SEG_CHANNELS) * SEG_H * SEG_W) {
+    // SWAP 0 and 1
+    if (featureVectors[1].size() != static_cast<size_t>(numChannels) * numAnchors) {
         throw std::logic_error("Output at index 1 has incorrect length");
     }
 
-    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVectors[0].data());
+    if (featureVectors[0].size() != static_cast<size_t>(SEG_CHANNELS) * SEG_H * SEG_W) {
+        throw std::logic_error("Output at index 0 has incorrect length");
+    }
+
+    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVectors[1].data());
     output = output.t();
 
-    cv::Mat protos = cv::Mat(SEG_CHANNELS, SEG_H * SEG_W, CV_32F, featureVectors[1].data());
+    cv::Mat protos = cv::Mat(SEG_CHANNELS, SEG_H * SEG_W, CV_32F, featureVectors[0].data());
 
     std::vector<int> labels;
     std::vector<float> scores;
@@ -209,8 +210,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
         }
     }
 
-    // Require OpenCV 4.7 for this function
-    cv::dnn::NMSBoxesBatched(bboxes, scores, labels, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
+    cv::dnn::NMSBoxes(bboxes, scores, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
 
     // Obtain the segmentation masks
     cv::Mat masks;
@@ -317,7 +317,7 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
     }
 
     // Run NMS
-    cv::dnn::NMSBoxesBatched(bboxes, scores, labels, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
+    cv::dnn::NMSBoxes(bboxes, scores, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
 
     std::vector<Object> objects;
 
@@ -388,7 +388,7 @@ std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector)
     }
 
     // Run NMS
-    cv::dnn::NMSBoxesBatched(bboxes, scores, labels, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
+    cv::dnn::NMSBoxes(bboxes, scores, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
 
     std::vector<Object> objects;
 

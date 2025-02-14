@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16)
 project(YOLOv8_TensorRT_CPP)
 
 # Use ccache to speed up rebuilds
@@ -17,7 +17,7 @@ endif()
 find_package(OpenCV REQUIRED)
 
 # TODO: Specify the path to TensorRT root dir
-set(TensorRT_DIR /home/cyrus/work/libs/TensorRT-10.0.0.6/)
+set(TensorRT_DIR /usr/lib/aarch64-linux-gnu/)
 
 # Build the TensorRT inference engine library
 # TensorRT is found and linked by the tensorrt-cpp-api
