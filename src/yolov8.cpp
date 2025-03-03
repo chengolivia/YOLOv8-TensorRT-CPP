@@ -250,11 +250,8 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
             cv::Mat dest, mask;
             cv::exp(-maskChannels[i], dest);
             dest = 1.0 / (1.0 + dest);
-            // Save object mask at inference size
-            objs[i].infMask = dest > SEGMENTATION_THRESHOLD;
             dest = dest(roi);
             cv::resize(dest, mask, cv::Size(static_cast<int>(m_imgWidth), static_cast<int>(m_imgHeight)), cv::INTER_LINEAR);
-            // Save object mask at image/bounding box size
             objs[i].boxMask = mask(objs[i].rect) > SEGMENTATION_THRESHOLD;
         }
     }

@@ -19,8 +19,6 @@ struct Object {
     cv::Mat boxMask;
     // Pose estimation key points
     std::vector<float> kps{};
-    // Added: inference size mask
-    cv::Mat infMask;
 };
 
 // Config the behavior of the YoloV8 detector.
